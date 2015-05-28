@@ -303,8 +303,9 @@ class ShapeLearner:
         
         # learning :
         diff_params = params_demo - self.params
-        self.params += diff_params/2 #go towards the demonstrated shape
-
+        #self.params += diff_params/2 #go towards the demonstrated shape
+        self.params += diff_params*0.3
+        self.params += numpy.linalg.norm(diff_params)*0.15*numpy.random.rand(5,1)
 
         #self.params[self.paramsToVary[0]-1] = params_demo[self.paramsToVary[0]-1] #ONLY USE FIRST PARAM
         #store it as an attempt (this isn't super appropriate but whatever)

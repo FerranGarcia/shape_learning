@@ -52,6 +52,8 @@ class ShapeLearnerManager:
         self.currentCollection = ""
         self.collectionsLearnt = []
         self.nextShapeLearnerToBeStarted = 0
+        self.currentDemo = ""
+        self.currentLearn = ""
 
     def initialiseShapeLearners(self):
         self.shapeLearners_currentCollection = []
@@ -138,7 +140,8 @@ class ShapeLearnerManager:
             newPath, newParamValues, params_demo = self.shapeLearners_currentCollection[shapeIndex_messageFor].respondToDemonstration(shape)
 
             shapeLogger.info("%s: new demonstration.         Params: %s. Path: %s" % (shape_messageFor, params_demo.flatten().tolist(), shape.flatten().tolist()))
-
+            logger_str = "%s: new demonstration.         Params: %s. Path: %s" % (shape_messageFor, params_demo.flatten().tolist(), shape.flatten().tolist())     
+            self.currentDemo = logger_str
             paramsToVary = self.settings_shapeLearners_currentCollection[shapeIndex_messageFor].paramsToVary
             shape = Shape(path=newPath,
                           shapeID=[], 
@@ -147,6 +150,8 @@ class ShapeLearnerManager:
                           paramsToVary=paramsToVary, 
                           paramValues=newParamValues)
             shapeLogger.info("%s: new generated model.       Params: %s. Path: %s" % (shape_messageFor, newParamValues.flatten().tolist(), newPath.flatten().tolist()))
+            logger_str = "%s: new generated model.       Params: %s. Path: %s" % (shape_messageFor, newParamValues.flatten().tolist(), newPath.flatten().tolist())           
+            self.currentLearn = logger_str            
             return shape
 
     def indexOfShapeInCurrentCollection(self, shapeType):

@@ -18,6 +18,7 @@ from sklearn.datasets.samples_generator import make_blobs
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import MeanShift
 
+            
 class ShapeModeler:
     def __init__(self,
                  shape_name=None, 
@@ -116,7 +117,12 @@ class ShapeModeler:
             if not (len(values) == self.numPointsInShapes * 2):
                 raise RuntimeError(
                     "Unable to read appropriate number of points from text file for shape " + str(i + 1))
-            self.dataMat[i+1] = map(float, values)
+                    
+            # Redistribute the points equidistantly
+            shape = map(float, values)
+            shape_normalized = self.uniformize_xxyy(shape)
+            self.dataMat[i+1] = shape_normalized
+            #self.dataMat[i+1] = map(float, values)
 
     def performPCA(self):
         """ Calculate the top 'num_principle_components' principle components of
@@ -340,7 +346,55 @@ class ShapeModeler:
         centers = [clusters[i,:].reshape((self.numPointsInShapes * 2, 1)) for i in range(len(clusters))]
         return centers
 
-
+    def uniformize_xxyy(self, shape):
+        """Preprocess to letters to uniformize the points 
+        """
+        if len(shape)>2:
+            # comput length of the shape:
+            shape_length = 0
+            numPointsInShape = len(shape)/2
+            last_x = shape[0]
+            last_y = shape[numPointsInShape]
+            scale = [0]
+            for i in range(numPointsInShape-1):
+                x = shape[i + 1]
+                y = shape[i + numPointsInShape + 1]
+                last_x = shape[i]
+                last_y = shape[i + numPointsInShape]
+                shape_length += numpy.sqrt((x-last_x)**2 + (y-last_y)**2)
+                #last_x = x
+                #last_y = y
+                scale.append(shape_length)
+    
+            # find new points:
+            new_shape_x = []
+            new_shape_y = []
+            step = shape_length/float(numPointsInShape)
+            biggest_smoller_point = 0
+            new_shape_x.append(shape[0])
+            new_shape_y.append(shape[numPointsInShape])
+            for i in 1+numpy.array(range(numPointsInShape-2)):
+                while i*step > scale[biggest_smoller_point]:
+                    biggest_smoller_point += 1
+                biggest_smoller_point -= 1
+                x0 = shape[biggest_smoller_point]
+                y0 = shape[biggest_smoller_point+numPointsInShape]
+                x1 = shape[biggest_smoller_point+1]
+                y1 = shape[biggest_smoller_point+1+numPointsInShape]
+                diff = float(i*step-scale[biggest_smoller_point])
+                dist = float(scale[biggest_smoller_point+1]-scale[biggest_smoller_point])
+                new_x = x0 + diff*(x1-x0)/dist
+                new_y = y0 + diff*(y1-y0)/dist
+                new_shape_x.append(new_x)
+                new_shape_y.append(new_y)
+            new_shape_x.append(shape[numPointsInShape-1])
+            new_shape_y.append(shape[-1])
+    
+            return new_shape_x + new_shape_y
+    
+        else:
+            return shape
+    
 
     @staticmethod
     def showShape(shape, block=False):
@@ -478,3 +532,4 @@ class ShapeModeler:
         else:
             plt.errorbar(x_shape,-y_shape, yerr=scores/numpy.max(scores))
             plt.draw()
+    
